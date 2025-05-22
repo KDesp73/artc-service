@@ -9,18 +9,19 @@ from fastapi import Request
 from pydantic import BaseModel
 import subprocess
 
-app = FastAPI()
+allowed_origins = [
+    "https://artc-editor.vercel.app",
+    "http://192.168.1.8:3000" # Development
+]
 
+app = FastAPI()
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://artc-editor.vercel.app",
-        "http://192.168.1.8:3000" # Development
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        )
 
 os.makedirs("videos", exist_ok=True)
 os.makedirs("tmp", exist_ok=True)
@@ -41,11 +42,11 @@ async def render_script(req: RenderRequest):
 
     try:
         subprocess.run(
-            ["./bin/artc", lua_path, "-x", "-o", output_path, "-d", str(duration)],
-            check=True,
-            capture_output=True,
-            timeout=60
-        )
+                ["./bin/artc", lua_path, "-x", "-o", output_path, "-d", str(duration)],
+                check=True,
+                capture_output=True,
+                timeout=60
+                )
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"artc failed: {e.stderr.decode()}")
     except subprocess.TimeoutExpired:
@@ -59,17 +60,14 @@ async def render_script(req: RenderRequest):
 @app.get("/videos/{filename}")
 async def get_video(filename: str, request: Request):
     origin = request.headers.get("origin")
-    allowed_origins = [
-        "http://192.168.1.8:3000",
-        "https://artc-editor.vercel.app"
-    ]
 
     if origin not in allowed_origins:
         return Response("Forbidden origin", status_code=403)
 
     headers = {
         "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Credentials": "true"
+        "Access-Control-Allow-Credentials": "true",
+        "Content-Disposition": f'attachment; filename="{filename}"'
     }
 
     file_path = f"videos/{filename}"
