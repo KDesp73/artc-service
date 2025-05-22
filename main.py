@@ -8,6 +8,13 @@ from pydantic import BaseModel
 import subprocess
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins= ["http://localhost:3000", "https://artc-editor.vercel.app/"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 os.makedirs("videos", exist_ok=True)
 os.makedirs("tmp", exist_ok=True)
