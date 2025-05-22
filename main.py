@@ -3,6 +3,7 @@ import uuid
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import subprocess
@@ -10,7 +11,7 @@ import subprocess
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["http://localhost:3000", "https://artc-editor.vercel.app/"]
+    allow_origins= ["http://localhost:3000", "https://artc-editor.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
