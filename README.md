@@ -1,7 +1,9 @@
 # artc-service
 
+[artc](https://github.com/KDesp73/artc)
+
 ```bash
-$ uvicorn main:app --reload
+$ make start
 ```
 
 ## Request
