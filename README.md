@@ -15,6 +15,8 @@ $ uvicorn main:app --reload
 
 ## Response
 
+```json
 {
     "video_url": "/videos/<uuid>.mp4"
 }
+```
