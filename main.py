@@ -1,9 +1,7 @@
 import os
 import threading
-import time
 import uuid
-import shutil
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -11,15 +9,17 @@ from pydantic import BaseModel
 import subprocess
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["https://artc-editor.vercel.app", "http://192.168.1.8:3000"],
-    # allow_origins=["*"],
+    allow_origins=[
+        "https://artc-editor.vercel.app",
+        "http://192.168.1.8:3000" # Development
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 os.makedirs("videos", exist_ok=True)
 os.makedirs("tmp", exist_ok=True)
@@ -33,13 +33,13 @@ async def render_script(req: RenderRequest):
     script_id = str(uuid.uuid4())
     duration = req.duration
     lua_path = f"tmp/{script_id}.lua"
+    output_path = f"videos/{script_id}.mp4"
+
     with open(lua_path, "w") as f:
         f.write(req.script)
 
-    output_path = f"videos/{script_id}.mp4"
-
     try:
-        result = subprocess.run(
+        subprocess.run(
             ["./bin/artc", lua_path, "-x", "-o", output_path, "-d", str(duration)],
             check=True,
             capture_output=True,
@@ -63,5 +63,8 @@ def delete_file(path):
     except Exception as e:
         print(f"Failed to delete {path}: {e}")
 
-app.mount("/videos", StaticFiles(directory="videos"), name="videos")
-
+app.mount(
+    "/videos",
+    StaticFiles(directory="videos", html=False),
+    name="videos"
+)
