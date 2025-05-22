@@ -1,0 +1,14 @@
+services:
+  artc:
+    build: .
+    container_name: artc_service
+    ports:
+      - "9876:9876"
+    volumes:
+      - ./videos:/app/videos
+      - ./tmp:/app/tmp
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+
