@@ -2,9 +2,10 @@ import os
 import threading
 import uuid
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, Response
+from fastapi import Request
 from pydantic import BaseModel
 import subprocess
 
@@ -54,6 +55,25 @@ async def render_script(req: RenderRequest):
     threading.Timer(120, delete_file, args=(output_path,)).start()
 
     return {"video_url": f"/videos/{script_id}.mp4"}
+
+@app.get("/videos/{filename}")
+async def get_video(filename: str, request: Request):
+    origin = request.headers.get("origin")
+    allowed_origins = [
+        "http://192.168.1.8:3000",
+        "https://artc-editor.vercel.app"
+    ]
+
+    if origin not in allowed_origins:
+        return Response("Forbidden origin", status_code=403)
+
+    headers = {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true"
+    }
+
+    file_path = f"videos/{filename}"
+    return FileResponse(file_path, headers=headers, media_type="video/mp4")
 
 def delete_file(path):
     try:
