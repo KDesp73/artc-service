@@ -14,10 +14,12 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins= ["https://artc-editor.vercel.app"],
+    # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 os.makedirs("videos", exist_ok=True)
 os.makedirs("tmp", exist_ok=True)
@@ -26,7 +28,7 @@ class RenderRequest(BaseModel):
     script: str
     duration: int
 
-@app.post("/render/")
+@app.post("/render")
 async def render_script(req: RenderRequest):
     script_id = str(uuid.uuid4())
     duration = req.duration
@@ -48,6 +50,7 @@ async def render_script(req: RenderRequest):
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=500, detail="artc command timed out")
 
+    threading.Timer(120, delete_file, args=(lua_path,)).start()
     threading.Timer(120, delete_file, args=(output_path,)).start()
 
     return {"video_url": f"/videos/{script_id}.mp4"}
