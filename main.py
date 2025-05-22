@@ -13,7 +13,7 @@ import subprocess
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["https://artc-editor.vercel.app"],
+    allow_origins= ["https://artc-editor.vercel.app", "http://192.168.1.8:3000"],
     # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
