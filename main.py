@@ -8,6 +8,20 @@ from fastapi.responses import FileResponse, Response
 from fastapi import Request
 from pydantic import BaseModel
 import subprocess
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
+from dotenv import load_dotenv
+import datetime
+
+load_dotenv()
+
+cloudinary.config( 
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"), 
+    api_key=os.getenv("CLOUDINARY_PUBLIC"), 
+    api_secret=os.getenv("CLOUDINARY_SECRET"),
+    secure=True
+)
 
 allowed_origins = [
     "https://artc-editor.vercel.app",
@@ -52,26 +66,18 @@ async def render_script(req: RenderRequest):
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=500, detail="artc command timed out")
 
+    try:
+        response = cloudinary.uploader.upload(output_path, resource_type="video")
+
+        url = response["secure_url"]
+        print(url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {str(e)}")
+
     threading.Timer(120, delete_file, args=(lua_path,)).start()
     threading.Timer(120, delete_file, args=(output_path,)).start()
 
-    return {"video_url": f"/videos/{script_id}.mp4"}
-
-@app.get("/videos/{filename}")
-async def get_video(filename: str, request: Request):
-    origin = request.headers.get("origin")
-
-    if origin not in allowed_origins:
-        return Response("Forbidden origin", status_code=403)
-
-    headers = {
-        "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Credentials": "true",
-        "Content-Disposition": f'attachment; filename="{filename}"'
-    }
-
-    file_path = f"videos/{filename}"
-    return FileResponse(file_path, headers=headers, media_type="video/mp4")
+    return {"video_url": url}
 
 def delete_file(path):
     try:

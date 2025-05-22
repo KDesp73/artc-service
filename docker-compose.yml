@@ -8,6 +8,8 @@ services:
       - "9876:9876"
     volumes:
       - ./videos:/app/videos
+    env_file:
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
