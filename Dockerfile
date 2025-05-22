@@ -1,21 +1,33 @@
-# Use official Python image
-FROM python:3.11-slim
+FROM debian:sid
 
-# Set working directory
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    libsdl2-dev \
+    ffmpeg \
+    python3.12 \
+    python3.12-venv \
+    python3.12-dev \
+    python3-pip \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y ffmpeg && apt-get clean
+COPY ./bin/artc ./bin/artc
+RUN chmod +x ./bin/artc
 
-# Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --upgrade pip setuptools wheel --break-system-packages
+RUN pip3 install -r requirements.txt --break-system-packages
 
-# Copy the application code
 COPY . .
 
-# Expose FastAPI port
-EXPOSE 8000
+EXPOSE 9876
 
-# Start the FastAPI server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9876"]
+CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "9876"]
