@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 import uuid
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -46,7 +48,17 @@ async def render_script(req: RenderRequest):
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=500, detail="artc command timed out")
 
+    threading.Timer(120, delete_file, args=(output_path,)).start()
+
     return {"video_url": f"/videos/{script_id}.mp4"}
+
+def delete_file(path):
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+            print(f"Deleted file: {path}")
+    except Exception as e:
+        print(f"Failed to delete {path}: {e}")
 
 app.mount("/videos", StaticFiles(directory="videos"), name="videos")
 
