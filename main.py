@@ -55,14 +55,14 @@ async def render_script(req: RenderRequest):
         f.write(req.script)
 
     try:
-        subprocess.run(
+        result = subprocess.run(
                 ["./bin/artc", lua_path, "-x", "-o", output_path, "-d", str(duration)],
                 check=True,
                 capture_output=True,
                 timeout=60
                 )
     except subprocess.CalledProcessError as e:
-        raise HTTPException(status_code=500, detail=f"artc failed: {e.stderr.decode()}")
+        raise HTTPException(status_code=500, detail=f"{e.stderr}")
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=500, detail="artc command timed out")
 
