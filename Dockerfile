@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     libsdl2-dev \
     libsdl2-image-dev \
     libsdl2-ttf-dev \
+    libmagic-dev \
     ffmpeg \
     python3.12 \
     python3.12-venv \
