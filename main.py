@@ -24,6 +24,7 @@ cloudinary.config(
 )
 
 allowed_origins = [
+    "https://artc-editor.kdesp73.org",
     "https://artc-editor.vercel.app",
     "http://192.168.1.8:3000" # Development
 ]
